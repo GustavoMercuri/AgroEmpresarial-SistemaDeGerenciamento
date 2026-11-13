@@ -1,0 +1,20 @@
+# Banco do sistema legado, montado do jeito que o código original espera:
+# MySQL na porta 3306, base "agroempresarial", usuário root com a senha fixa
+# que está no ConnectionFactory.java e no persistence.xml.
+services:
+  mysql-legado:
+    image: mysql:5.7
+    platform: linux/amd64   # a imagem 5.7 não tem versão ARM; em Mac M1/M2/M3 roda emulada
+    container_name: agro-mysql-legado
+    environment:
+      MYSQL_ROOT_PASSWORD: "1463"
+      MYSQL_DATABASE: agroempresarial
+    command: --sql-mode="" --character-set-server=latin1 --collation-server=latin1_swedish_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - "./banco de dados/agroempresarial.sql:/docker-entrypoint-initdb.d/01-agroempresarial.sql:ro"
+      - agro-dados:/var/lib/mysql
+
+volumes:
+  agro-dados:
