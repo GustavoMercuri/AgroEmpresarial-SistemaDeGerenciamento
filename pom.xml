@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Build mínimo para rodar o sistema ORIGINAL fora do NetBeans.
+  Não muda nenhuma linha de código: só diz ao Maven onde estão os fontes e as
+  bibliotecas. Os jars continuam vindo da pasta src/br/com/tcc/lib, como no
+  projeto original; só o Hibernate vem do Maven Central, porque no original ele
+  era uma biblioteca da própria IDE.
+
+  Precisa do JDK 8 (o código usa sun.misc.BASE64Encoder e javax.xml.bind).
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>br.com.tcc</groupId>
+    <artifactId>agroempresarial</artifactId>
+    <version>1.0-legado</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <libs>${project.basedir}/src/br/com/tcc/lib</libs>
+    </properties>
+
+    <dependencies>
+        <!-- No projeto original: biblioteca "Hibernate 4" do NetBeans -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+            <version>4.3.11.Final</version>
+            <exclusions>
+                <!-- O dom4j traz um xml-apis antigo que substitui o parser XML do JDK
+                     e quebra a leitura do persistence.xml -->
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Jars que já vinham dentro do repositório -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.35</version>
+            <scope>system</scope>
+            <systemPath>${libs}/mysql-connector-java-5.1.35-bin.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.jdesktop</groupId>
+            <artifactId>beansbinding</artifactId>
+            <version>1.2.1</version>
+            <scope>system</scope>
+            <systemPath>${libs}/beansbinding-1.2.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.netbeans</groupId>
+            <artifactId>AbsoluteLayout</artifactId>
+            <version>legado</version>
+            <scope>system</scope>
+            <systemPath>${libs}/AbsoluteLayout.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreechart</artifactId>
+            <version>1.0.19</version>
+            <scope>system</scope>
+            <systemPath>${libs}/jfreechart-1.0.19.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jcommon</artifactId>
+            <version>1.0.23</version>
+            <scope>system</scope>
+            <systemPath>${libs}/jcommon-1.0.23.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>com.itextpdf</groupId>
+            <artifactId>itextpdf</artifactId>
+            <version>5.5.3</version>
+            <scope>system</scope>
+            <systemPath>${libs}/itextpdf-5.5.3.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>net.proteanit</groupId>
+            <artifactId>rs2xml</artifactId>
+            <version>legado</version>
+            <scope>system</scope>
+            <systemPath>${libs}/rs2xml.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- O projeto do NetBeans não segue o layout do Maven: fontes e recursos ficam juntos em src/ -->
+        <sourceDirectory>src</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>src</directory>
+                <excludes>
+                    <exclude>**/*.java</exclude>
+                    <exclude>**/*.form</exclude>
+                    <exclude>**/*.jar</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>br.com.tcc.view.LoginView</mainClass>
+                    <!-- "compile" para incluir os jars de escopo system na execução -->
+                    <classpathScope>compile</classpathScope>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
