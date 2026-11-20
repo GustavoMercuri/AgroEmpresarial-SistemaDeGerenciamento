@@ -6,7 +6,7 @@
 package br.com.tcc.view;
 
 import br.com.tcc.entity.Funcionario;
-import br.com.tcc.util.EncriptaSenha;
+import br.com.tcc.service.SenhaService;
 import br.com.tcc.util.EntityManagerUtil;
 import br.com.tcc.util.Uteis;
 import java.awt.Color;
@@ -518,7 +518,7 @@ public class FuncionarioView extends javax.swing.JFrame {
             try {
                 int linhaClicada = tblObjetos.getSelectedRow();
                     Funcionario obj = funcionarioList.get(linhaClicada);
-                    Date data = new Date(System.currentTimeMillis());
+                    obj.setSenha(SenhaService.prepararParaGravar(obj.getSenha()));
                     entityManager.getTransaction().begin();
                     entityManager.persist(obj);
                     entityManager.getTransaction().commit();
@@ -711,7 +711,6 @@ public class FuncionarioView extends javax.swing.JFrame {
     }//GEN-LAST:event_txtLoginFocusLost
 
     private void txtSenhaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtSenhaFocusLost
-        txtSenha.setText(EncriptaSenha.encripta(txtSenha.getText()));
         Uteis.saiCampo(evt);
     }//GEN-LAST:event_txtSenhaFocusLost
 

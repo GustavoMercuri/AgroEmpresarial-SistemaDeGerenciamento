@@ -14,6 +14,7 @@ services:
       - "3306:3306"
     volumes:
       - "./banco de dados/agroempresarial.sql:/docker-entrypoint-initdb.d/01-agroempresarial.sql:ro"
+      - "./banco de dados/migracoes/02-senha-pbkdf2.sql:/docker-entrypoint-initdb.d/02-senha-pbkdf2.sql:ro"
       - agro-dados:/var/lib/mysql
 
 volumes:

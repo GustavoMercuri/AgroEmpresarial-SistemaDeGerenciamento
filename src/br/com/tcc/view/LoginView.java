@@ -6,7 +6,8 @@
 package br.com.tcc.view;
 
 import br.com.tcc.entity.Funcionario;
-import br.com.tcc.util.EncriptaSenha;
+import br.com.tcc.repository.FuncionarioRepositoryJpa;
+import br.com.tcc.service.AutenticacaoService;
 import br.com.tcc.util.EntityManagerUtil;
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -146,13 +147,11 @@ public class LoginView extends javax.swing.JFrame {
  * Verificação com MD5
  */
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        query = entityManager.createNamedQuery("Funcionario.verificaLogin");
-        query.setParameter("login", txtLogin.getText());
-        query.setParameter("senha", EncriptaSenha.encripta(txtSenha.getText()));
-        List<Funcionario> data = query.getResultList();
-        if (data.size() > 0) {
+        AutenticacaoService autenticacao = new AutenticacaoService(new FuncionarioRepositoryJpa(entityManager));
+        Funcionario funcionario = autenticacao.autenticar(txtLogin.getText(), new String(txtSenha.getPassword()));
+        if (funcionario != null) {
             String args[] = new String[1];
-            args[0] = data.get(0).getId().toString();
+            args[0] = funcionario.getId().toString();
             MenuPrincipalView.main(args);
             dispose();
 //            this.setVisible(false);
