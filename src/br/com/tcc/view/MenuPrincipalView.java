@@ -25,7 +25,6 @@ import br.com.tcc.relat.VendasDoDia;
 import br.com.tcc.relat.VendasDoDiaValores;
 import br.com.tcc.relat.VendasDoMes;
 import br.com.tcc.util.Data;
-import br.com.tcc.util.EncriptaSenha;
 import br.com.tcc.util.EntityManagerUtil;
 import static br.com.tcc.view.LoginView.txtLogin;
 import com.itextpdf.text.Document;
