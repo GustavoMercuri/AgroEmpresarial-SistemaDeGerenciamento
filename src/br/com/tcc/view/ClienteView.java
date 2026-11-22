@@ -5,7 +5,11 @@
  */
 package br.com.tcc.view;
 
+import br.com.tcc.entity.Bairro;
 import br.com.tcc.entity.Cliente;
+import br.com.tcc.repository.ClienteRepositoryJpa;
+import br.com.tcc.service.ClienteService;
+import br.com.tcc.service.RegraNegocioException;
 import br.com.tcc.util.EntityManagerUtil;
 import br.com.tcc.util.Uteis;
 import java.awt.Color;
@@ -20,6 +24,7 @@ import javax.swing.JOptionPane;
  */
 public class ClienteView extends javax.swing.JFrame {
 
+    private ClienteService clienteService;
     Boolean editando; // Variavel global responsavel pela ativações dos componentes da classe(ex: botões, tabelas e campos).
 
     /**
@@ -677,27 +682,23 @@ public class ClienteView extends javax.swing.JFrame {
      */
     private void btnGravarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnGravarActionPerformed
         if (validaCampos()) {
+            Cliente obj = clienteList.get(tblObjetos.getSelectedRow());
             try {
-                int linhaClicada = tblObjetos.getSelectedRow();
-                Cliente obj = clienteList.get(linhaClicada);
-                Date data = new Date(System.currentTimeMillis());
-                obj.setClienteDesde(data);
-                entityManager.getTransaction().begin();
-                entityManager.persist(obj);
-                entityManager.getTransaction().commit();
+                preencherDaTela(obj);
+                clienteService().salvar(obj, (Bairro) cbxBairro.getSelectedItem());
                 editando = false;
                 trataEdicao();
                 atualizaGrid();
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(null, "Erro ao Gravar \n" + e.getMessage());
-                if (entityManager.getTransaction().isActive() == false) {
-                    entityManager.getTransaction().begin();
-                }
-                entityManager.getTransaction().rollback();
+            } catch (java.text.ParseException e) {
+                JOptionPane.showMessageDialog(this, "Data Inválida!");
+            } catch (RegraNegocioException e) {
+                // continua em edição para o usuário corrigir
+                JOptionPane.showMessageDialog(this, e.getMessage());
+            } catch (RuntimeException e) {
+                JOptionPane.showMessageDialog(this, "Erro ao Gravar \n" + e.getMessage());
                 editando = false;
                 trataEdicao();
                 atualizaGrid();
-
             }
         }
     }//GEN-LAST:event_btnGravarActionPerformed
@@ -1015,40 +1016,47 @@ public class ClienteView extends javax.swing.JFrame {
      * Método de atualização de Grid Responsável por fazer a consulta e
      * ordenação dos registros no banco
      */
-    private void atualizaGrid() {
-        String sql = "from Cliente";
-        String ordem = "";
-        if (cbxOrdem.getSelectedItem().toString().equals("Código")) {
-            ordem = "id";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("Nome")) {
-            ordem = "nome";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("CPF")) {
-            ordem = "cpf";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("RG")) {
-            ordem = "rg";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("e-mail")) {
-            ordem = "email";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("Endereço")) {
-            ordem = "endereco";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("Nascimento")) {
-            ordem = "dataNascimento";
-        } else if (cbxOrdem.getSelectedItem().toString().equals("Admissão")) {
-            ordem = "clienteDesde";
-        }
-        String filtro = txtFiltro.getText();
-        if (filtro.length() > 0 && filtro != null) {
-            sql += " where upper(" + ordem + ") like '" + filtro.toUpperCase() + "%' ";
-        }
-
     /**
-     * Método que trata as edições de quais campos ficam abalitados
+     * O serviço é criado no primeiro uso: a troca de aba dispara atualizaGrid()
+     * ainda dentro do initComponents(), antes do fim do construtor.
      */
-//        sql += " order by " + "p.id desc";
-        sql += " order by " + ordem;
-        System.out.println("SQL Gerado: " + sql);
-        clienteQuery = entityManager.createQuery(sql);
-        clienteList.clear();
-        clienteList.addAll(clienteQuery.getResultList());
+    /**
+     * Copia o formulário para o cliente. No legado isso dependia só do Beans
+     * Binding, que não repassava os campos para um cliente novo.
+     */
+    private void preencherDaTela(Cliente c) throws java.text.ParseException {
+        c.setNome(txtDescricao.getText().trim());
+        c.setCpf(somenteSePreenchido(txfCpf.getText()));
+        c.setRg(txtRg.getText());
+        c.setEndereco(txtEndereco.getText());
+        c.setEmail(txtEmail.getText());
+        c.setFone(somenteSePreenchido(txfFone.getText()));
+        c.setCelular(somenteSePreenchido(txfCelular.getText()));
+        c.setDataNascimento(new SimpleDateFormat("dd/MM/yyyy").parse(txfNascimento.getText()));
+    }
+
+    /** Campo com máscara e sem nenhum dígito digitado vai como vazio, e não "( ) -". */
+    private static String somenteSePreenchido(String valor) {
+        return valor == null || valor.replaceAll("\\D", "").isEmpty() ? null : valor;
+    }
+
+    private ClienteService clienteService() {
+        if (clienteService == null) {
+            clienteService = new ClienteService(new ClienteRepositoryJpa(entityManager));
+        }
+        return clienteService;
+    }
+
+    private void atualizaGrid() {
+        try {
+            List<Cliente> resultado = clienteService().pesquisar(cbxOrdem.getSelectedItem().toString(), txtFiltro.getText());
+            clienteList.clear();
+            clienteList.addAll(resultado);
+        } catch (RuntimeException e) {
+            // no legado o erro só aparecia no console e a lista antiga continuava na tela
+            JOptionPane.showMessageDialog(this, "Erro ao pesquisar clientes:\n" + e.getMessage());
+            return;
+        }
         int row = clienteList.size() - 1;
         if (row >= 0) {
             tblObjetos.setRowSelectionInterval(row, row);
