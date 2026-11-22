@@ -35,7 +35,6 @@ public class ClienteFuncionarioView extends javax.swing.JFrame {
     public ClienteFuncionarioView() {
         this.setExtendedState(MAXIMIZED_BOTH);
         initComponents();
-        clienteService = new ClienteService(new ClienteRepositoryJpa(entityManager));
         editando = false;
         trataEdicao();
     }
@@ -828,10 +827,13 @@ public class ClienteFuncionarioView extends javax.swing.JFrame {
         if (validaCampos()) {
             Cliente obj = clienteList.get(tblObjetos.getSelectedRow());
             try {
-                clienteService.salvar(obj, (Bairro) cbxBairro.getSelectedItem());
+                preencherDaTela(obj);
+                clienteService().salvar(obj, (Bairro) cbxBairro.getSelectedItem());
                 editando = false;
                 trataEdicao();
                 atualizaGrid();
+            } catch (java.text.ParseException e) {
+                JOptionPane.showMessageDialog(this, "Data Inválida!");
             } catch (RegraNegocioException e) {
                 // continua em edição para o usuário corrigir
                 JOptionPane.showMessageDialog(this, e.getMessage());
@@ -945,9 +947,40 @@ public class ClienteFuncionarioView extends javax.swing.JFrame {
      * Método de atualização de Grid Responsável por fazer a consulta e
      * ordenação dos registros no banco
      */
+    /**
+     * O serviço é criado no primeiro uso: a troca de aba dispara atualizaGrid()
+     * ainda dentro do initComponents(), antes do fim do construtor.
+     */
+    /**
+     * Copia o formulário para o cliente. No legado isso dependia só do Beans
+     * Binding, que não repassava os campos para um cliente novo.
+     */
+    private void preencherDaTela(Cliente c) throws java.text.ParseException {
+        c.setNome(txtDescricao.getText().trim());
+        c.setCpf(somenteSePreenchido(txfCpf.getText()));
+        c.setRg(txtRg.getText());
+        c.setEndereco(txtEndereco.getText());
+        c.setEmail(txtEmail.getText());
+        c.setFone(somenteSePreenchido(txfFone.getText()));
+        c.setCelular(somenteSePreenchido(txfCelular.getText()));
+        c.setDataNascimento(new SimpleDateFormat("dd/MM/yyyy").parse(txfNascimento.getText()));
+    }
+
+    /** Campo com máscara e sem nenhum dígito digitado vai como vazio, e não "( ) -". */
+    private static String somenteSePreenchido(String valor) {
+        return valor == null || valor.replaceAll("\\D", "").isEmpty() ? null : valor;
+    }
+
+    private ClienteService clienteService() {
+        if (clienteService == null) {
+            clienteService = new ClienteService(new ClienteRepositoryJpa(entityManager));
+        }
+        return clienteService;
+    }
+
     private void atualizaGrid() {
         try {
-            List<Cliente> resultado = clienteService.pesquisar(cbxOrdem.getSelectedItem().toString(), txtFiltro.getText());
+            List<Cliente> resultado = clienteService().pesquisar(cbxOrdem.getSelectedItem().toString(), txtFiltro.getText());
             clienteList.clear();
             clienteList.addAll(resultado);
         } catch (RuntimeException e) {

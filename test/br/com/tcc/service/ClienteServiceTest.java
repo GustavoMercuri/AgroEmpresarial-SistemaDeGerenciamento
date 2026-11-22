@@ -133,7 +133,7 @@ class ClienteServiceTest {
     void pesquisaRepassaOFiltroMontado() {
         servico.pesquisar("Nome", "D'Ávila");
 
-        assertEquals("D'ÁVILA%", repositorio.ultimoFiltro.valorParametro());
+        assertEquals("%D'ÁVILA%", repositorio.ultimoFiltro.valorParametro());
     }
 
     @Test

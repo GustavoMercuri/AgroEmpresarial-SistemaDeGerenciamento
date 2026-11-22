@@ -15,7 +15,7 @@ class FiltroClienteTest {
 
         assertEquals("SELECT c FROM Cliente c WHERE UPPER(c.nome) LIKE :filtro ORDER BY c.nome", filtro.jpql());
         assertFalse(filtro.jpql().contains("'"));
-        assertEquals("D'ÁVILA%", filtro.valorParametro());
+        assertEquals("%D'ÁVILA%", filtro.valorParametro());
     }
 
     @Test
@@ -46,6 +46,6 @@ class FiltroClienteTest {
         assertFalse(new FiltroCliente("Nome", "   ").temFiltro());
         assertFalse(new FiltroCliente("Nome", null).temFiltro());
         assertTrue(new FiltroCliente("Nome", " Caio ").temFiltro());
-        assertEquals("CAIO%", new FiltroCliente("Nome", " Caio ").valorParametro());
+        assertEquals("%CAIO%", new FiltroCliente("Nome", " Caio ").valorParametro());
     }
 }

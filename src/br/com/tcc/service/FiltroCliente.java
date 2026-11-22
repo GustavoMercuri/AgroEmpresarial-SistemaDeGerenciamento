@@ -64,7 +64,8 @@ public class FiltroCliente {
         return sb.toString();
     }
 
+    /** Procura o texto em qualquer parte do campo (o legado só olhava o começo). */
     public String valorParametro() {
-        return texto.toUpperCase(new Locale("pt", "BR")) + "%";
+        return "%" + texto.toUpperCase(new Locale("pt", "BR")) + "%";
     }
 }
